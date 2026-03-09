@@ -63,11 +63,14 @@ userSchema.index({
     email: 1
 })
 
-userSchema.pre('save', function(next) {
+userSchema.pre('save', function (next) {
+    if (!this.isModified('password')) {
+        return next();
+    }
+
     let salt = bcrypt.genSaltSync(10);
-    this.password = bcrypt.hashSync(
-        this.password,salt
-    )
+    this.password = bcrypt.hashSync(this.password, salt);
+    next();
 })
 
 module.exports = mongoose.model("user", userSchema);

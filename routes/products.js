@@ -2,6 +2,7 @@ var express = require('express');
 let slugify = require('slugify')
 var router = express.Router();
 let modelProduct = require('../schemas/products')
+let { checkLogin, checkRole } = require('../utils/authHandler.js')
 
 
 /* GET users listing. */
@@ -27,7 +28,7 @@ router.get('/:id', async function (req, res, next) {
   try {
     let id = req.params.id;
     let result = await modelProduct.findById(id)
-    if (result&&(!result.isDeleted)) {
+    if (result && (!result.isDeleted)) {
       res.send(result)
     } else {
       res.status(404).send({
@@ -41,7 +42,7 @@ router.get('/:id', async function (req, res, next) {
   }
 })
 
-router.post('/', async function (req, res, next) {
+router.post('/', checkLogin, checkRole('admin', 'mod'), async function (req, res, next) {
   let newObj = new modelProduct({
     title: req.body.title,
     slug: slugify(req.body.title, {
@@ -56,7 +57,7 @@ router.post('/', async function (req, res, next) {
   await newObj.save();
   res.send(newObj)
 })
-router.put('/:id', async function (req, res, next) {
+router.put('/:id', checkLogin, checkRole('admin', 'mod'), async function (req, res, next) {
   let id = req.params.id;
   try {
     let id = req.params.id;
@@ -87,7 +88,7 @@ router.put('/:id', async function (req, res, next) {
     })
   }
 })
-router.delete('/:id', async function (req, res, next) {
+router.delete('/:id', checkLogin, checkRole('admin'), async function (req, res, next) {
   let id = req.params.id;
   try {
     let id = req.params.id;
@@ -108,8 +109,8 @@ router.delete('/:id', async function (req, res, next) {
     //c2:
     let result = await modelProduct.findByIdAndUpdate(
       id, {
-        isDeleted:true
-      }, {
+      isDeleted: true
+    }, {
       new: true
     }
     )
